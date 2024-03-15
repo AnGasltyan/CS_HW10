@@ -1,0 +1,120 @@
+using System;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+
+namespace WpfDataStorage
+{
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int Age { get; set; }
+    }
+
+    public partial class MainWindow : Window
+    {
+        private const int MaxSize = 100;
+        private Person[] people = new Person[MaxSize];
+        private int count = 0;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void AddButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (count < MaxSize)
+            {
+                int id = int.Parse(IdTextBox.Text);
+                string name = NameTextBox.Text;
+                int age = int.Parse(AgeTextBox.Text);
+
+                people[count++] = new Person { Id = id, Name = name, Age = age };
+
+                UpdateListBox();
+                ClearTextBoxes();
+            }
+            else
+            {
+                MessageBox.Show("Storage limit reached.");
+            }
+        }
+
+        private void DisplayButton_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateListBox();
+        }
+
+        private void SortByAgeButton_Click(object sender, RoutedEventArgs e)
+        {
+            Array.Sort(people, 0, count, new Comparison<Person>((p1, p2) => p1.Age.CompareTo(p2.Age)));
+            UpdateListBox();
+        }
+
+        private void SortByNameButton_Click(object sender, RoutedEventArgs e)
+        {
+            Array.Sort(people, 0, count, new Comparison<Person>((p1, p2) => string.Compare(p1.Name, p2.Name)));
+            UpdateListBox();
+        }
+
+        private void SearchByAgeButton_Click(object sender, RoutedEventArgs e)
+        {
+            int searchAge = int.Parse(SearchAgeTextBox.Text);
+            var result = people.Where(person => person != null && person.Age == searchAge).ToList();
+            UpdateListBox(result);
+        }
+
+        private void SearchByNameButton_Click(object sender, RoutedEventArgs e)
+        {
+            string searchName = SearchNameTextBox.Text;
+            var result = people.Where(person => person != null && person.Name.Equals(searchName)).ToList();
+            UpdateListBox(result);
+        }
+
+        private void RemoveByIdButton_Click(object sender, RoutedEventArgs e)
+        {
+            int idToRemove = int.Parse(RemoveIdTextBox.Text);
+            int index = Array.FindIndex(people, 0, count, person => person != null && person.Id == idToRemove);
+            if (index != -1)
+            {
+                for (int i = index; i < count - 1; i++)
+                {
+                    people[i] = people[i + 1];
+                }
+                count--;
+                UpdateListBox();
+            }
+            else
+            {
+                MessageBox.Show("Record not found.");
+            }
+        }
+
+        private void UpdateListBox()
+        {
+            PeopleListBox.Items.Clear();
+            for (int i = 0; i < count; i++)
+            {
+                PeopleListBox.Items.Add($"ID: {people[i].Id}, Name: {people[i].Name}, Age: {people[i].Age}");
+            }
+        }
+
+        private void UpdateListBox(System.Collections.Generic.List<Person> peopleList)
+        {
+            PeopleListBox.Items.Clear();
+            foreach (var person in peopleList)
+            {
+                PeopleListBox.Items.Add($"ID: {person.Id}, Name: {person.Name}, Age: {person.Age}");
+            }
+        }
+
+        private void ClearTextBoxes()
+        {
+            IdTextBox.Clear();
+            NameTextBox.Clear();
+            AgeTextBox.Clear();
+        }
+    }
+}
